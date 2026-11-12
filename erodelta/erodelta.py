@@ -77,7 +77,10 @@ class ErodeltaSync(SyncBase):
             os.makedirs(self.repo.location, exist_ok=True)
             res = subprocess.run(["mount", "-o", "remount", self.repo.location], stderr=subprocess.DEVNULL)
             if res.returncode != 0:
-                subprocess.run(["mount", "-o", "loop,ro", current_img, self.repo.location])
+                mount_res = subprocess.run(["mount", "-o", "loop,ro", current_img, self.repo.location])
+                if mount_res.returncode != 0:
+                    print(f"[{name}] Failed to mount image!")
+                    return (mount_res.returncode, False)
 
             print(f"[{name}] Successfully synced and mounted")
             return (0, True)
