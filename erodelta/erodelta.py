@@ -24,7 +24,7 @@ class ErodeltaSync(SyncBase):
     def sync(self, **kwargs):
         name = self.repo.name
         base_url = self.repo.sync_uri.rstrip('/')
-        img_dir = "/var/lib/portage-images"
+        img_dir = "/var/cache/portage/erofs"
         os.makedirs(img_dir, exist_ok=True)
 
         current_img = f"{img_dir}/{name}.erofs"
