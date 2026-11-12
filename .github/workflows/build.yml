@@ -1,0 +1,86 @@
+name: Build EROFS Images
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y erofs-utils xdelta3 jq
+
+      - name: Download previous images
+        run: |
+          mkdir -p prev
+          gh release download latest -D prev --pattern "*.erofs" || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Repositories
+        run: |
+          mkdir -p out
+          echo "{}" > out/manifest.json
+
+          REPOS=(
+            "gentoo|https://github.com/gentoo-mirror/gentoo.git"
+            "guru|https://github.com/gentoo-mirror/guru.git"
+            "libressl|https://github.com/gentoo/libressl.git"
+            "gentoo-zh|https://github.com/gentoo-zh/overlay.git"
+          )
+
+          for entry in "${REPOS[@]}"; do
+            IFS="|" read -r NAME URL <<< "$entry"
+            echo "=== Processing $NAME ==="
+            
+            git clone --depth=1 "$URL" "src_$NAME"
+            COMMIT_TIME=$(git -C "src_$NAME" log -1 --format=%ct)
+            rm -rf "src_$NAME/.git"
+            
+            mkfs.erofs \
+              -z zstd,6 -C 65536 \
+              -E fragments,ztailpacking,dedupe \
+              -T "$COMMIT_TIME" --all-root \
+              "out/$NAME.erofs" "src_$NAME"
+            
+            NEW_SHA=$(sha256sum "out/$NAME.erofs" | awk '{print $1}')
+            OLD_SHA=""
+            HAS_DELTA=false
+
+            if [ -f "prev/$NAME.erofs" ]; then
+              OLD_SHA=$(sha256sum "prev/$NAME.erofs" | awk '{print $1}')
+              if [ "$OLD_SHA" != "$NEW_SHA" ]; then
+                echo "Generating delta for $NAME..."
+                xdelta3 -e -s "prev/$NAME.erofs" "out/$NAME.erofs" "out/$NAME.vcdiff"
+                HAS_DELTA=true
+              fi
+            fi
+
+            jq --arg name "$NAME" \
+               --arg new_sha "$NEW_SHA" \
+               --arg old_sha "$OLD_SHA" \
+               --argjson has_delta "$HAS_DELTA" \
+               '.[$name] = {to_sha256: $new_sha, from_sha256: $old_sha, has_delta: $has_delta}' \
+               out/manifest.json > out/manifest.json.tmp && mv out/manifest.json.tmp out/manifest.json
+
+            rm -rf "src_$NAME"
+          done
+
+      - name: Publish Release
+        run: |
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest out/* \
+            --title "Daily EROFS Snapshots ($(date -u +'%Y-%m-%d'))" \
+            --notes "Automated daily build of Gentoo repositories."
+
+
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
