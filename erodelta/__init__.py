@@ -7,6 +7,7 @@ module_spec = {
     'provides': {
         'erodelta-module': {
             'name': 'erodelta',
+            'sourcefile': 'erodelta',
             'class': 'ErodeltaSync',
             'description': doc,
             'functions': ['sync', 'new'],
