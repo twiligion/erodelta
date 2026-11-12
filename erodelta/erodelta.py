@@ -22,6 +22,15 @@ class ErodeltaSync(SyncBase):
         super().__init__('erodelta', 'app-portage/portage-sync-erodelta')
 
     def sync(self, **kwargs):
+
+        if kwargs:
+            self._kwargs(kwargs)
+
+        if not getattr(self, 'repo', None) and 'repo' in kwargs:
+            self.repo = kwargs['repo']
+
+        name = self.repo.name
+        base_url = self.repo.sync_uri.rstrip('/')
         name = self.repo.name
         base_url = self.repo.sync_uri.rstrip('/')
         img_dir = "/var/cache/portage/erofs"
