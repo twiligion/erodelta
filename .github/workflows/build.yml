@@ -35,6 +35,7 @@ jobs:
             "guru|https://github.com/gentoo-mirror/guru.git"
             "libressl|https://github.com/gentoo/libressl.git"
             "gentoo-zh|https://github.com/gentoo-zh/overlay.git"
+            "hyproverlay|https://codeberg.org/hyproverlay/hyproverlay.git"
           )
 
           for entry in "${REPOS[@]}"; do
