@@ -35,6 +35,7 @@ jobs:
             "guru|https://github.com/gentoo-mirror/guru.git"
             "libressl|https://github.com/gentoo/libressl.git"
             "gentoo-zh|https://github.com/gentoo-zh/overlay.git"
+            "bentoo|https://github.com/obentoo/bentoo.git"
             "hyproverlay|https://codeberg.org/hyproverlay/hyproverlay.git"
           )
 
