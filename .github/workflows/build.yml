@@ -35,8 +35,9 @@ jobs:
             "guru|https://github.com/gentoo-mirror/guru.git"
             "libressl|https://github.com/gentoo/libressl.git"
             "gentoo-zh|https://github.com/gentoo-zh/overlay.git"
+            "bentoo|https://github.com/obentoo/bentoo.git"
             "hyproverlay|https://codeberg.org/hyproverlay/hyproverlay.git"
-            "java"|https://anongit.gentoo.org/git/proj/java.git"
+            "java|https://anongit.gentoo.org/git/proj/java.git"
             "superposition|https://anongit.gentoo.org/git/repo/user/superposition.git"
             "Miezhiko|https://github.com/Miezhiko/Overlay.git"
           )
